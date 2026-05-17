@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NINA PHYSICS LAB</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#020508; color:#c0d4e8;
+  font-family:'Rajdhani',sans-serif;
+  display:flex; height:100vh; overflow:hidden; user-select:none;
+}
+#panel {
+  width:230px; min-width:230px;
+  background:linear-gradient(160deg,#060d18,#04090f);
+  border-right:1px solid #0d2035;
+  padding:14px 10px; overflow-y:auto; z-index:10;
+  display:flex; flex-direction:column; gap:13px;
+}
+#panel::-webkit-scrollbar{width:4px}
+#panel::-webkit-scrollbar-thumb{background:#0d2a44;border-radius:2px}
+.logo {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  letter-spacing:3px; color:#2a7fff; text-transform:uppercase;
+  padding-bottom:10px; border-bottom:1px solid #0d2035;
+  display:flex; align-items:center; gap:6px;
+}
+.logo-dot {
+  width:8px;height:8px;border-radius:50%;background:#2a7fff;
+  box-shadow:0 0 8px #2a7fff; animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px #2a7fff}50%{opacity:.4;box-shadow:0 0 2px #2a7fff}}
+.sec-label {
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  letter-spacing:2.5px; color:#1e4a70; text-transform:uppercase; margin-bottom:6px;
+}
+.mat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.mat-btn {
+  padding:7px 5px; border:1px solid #0d2035;
+  background:rgba(13,32,52,.35); color:#8ab4cc;
+  cursor:pointer; border-radius:3px; font-size:11px;
+  font-family:'Rajdhani',sans-serif; font-weight:600;
+  text-align:center; transition:all .18s;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.mat-btn:hover{border-color:#2a7fff;color:#fff;box-shadow:0 0 8px rgba(42,127,255,.2)}
+.mat-btn:active{transform:scale(.97);background:rgba(42,127,255,.15)}
+.mat-swatch{width:28px;height:15px;border-radius:2px;border:1px solid rgba(255,255,255,.08)}
+.slab-list{display:flex;flex-direction:column;gap:3px;max-height:95px;overflow-y:auto}
+.slab-list::-webkit-scrollbar{width:3px}
+.slab-list::-webkit-scrollbar-thumb{background:#0d2a44}
+.slab-item {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 7px; background:rgba(13,32,52,.35);
+  border:1px solid transparent; border-radius:3px;
+  font-size:11px;cursor:pointer;transition:all .15s;font-weight:600;
+}
+.slab-item:hover{border-color:#1a4a72}
+.slab-item.selected{border-color:#2a7fff;background:rgba(42,127,255,.12);color:#aad4ff}
+.slab-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.slab-remove{color:#4a2a2a;cursor:pointer;font-size:14px;line-height:1;transition:color .15s}
+.slab-remove:hover{color:#ff6a6a}
+.empty-hint{font-family:'Share Tech Mono',monospace;font-size:9px;color:#122030;padding:4px;letter-spacing:1px}
+.slider-row{display:flex;align-items:center;gap:8px}
+input[type=range]{flex:1;height:3px;cursor:pointer;accent-color:#2a7fff;background:#0d2035;border-radius:2px;outline:none;-webkit-appearance:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#2a7fff;box-shadow:0 0 6px rgba(42,127,255,.5);cursor:pointer}
+.slider-val{font-family:'Share Tech Mono',monospace;font-size:10px;color:#2a7fff;width:34px;text-align:right}
+.wave-list{display:flex;flex-direction:column;gap:4px}
+.wave-btn {
+  padding:7px 10px; border:1px solid #0d2035;
+  background:rgba(13,32,52,.35); color:#8ab4cc;
+  cursor:pointer; border-radius:3px;
+  font-family:'Rajdhani',sans-serif; font-weight:600; font-size:11px;
+  text-align:left; display:flex; align-items:center; gap:8px; transition:all .18s;
+}
+.wave-btn:hover{background:rgba(13,32,52,.7);color:#fff}
+.wave-btn.active{border-color:var(--wc);background:rgba(13,32,52,.7);color:#fff}
+.wave-pip{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--wc);box-shadow:0 0 5px var(--wc)}
+.wave-sub{font-size:9px;color:#3a6a8a;font-family:'Share Tech Mono',monospace;margin-left:auto}
+.fire-btn {
+  width:100%; padding:11px;
+  background:linear-gradient(135deg,#0d2a5a,#071828);
+  border:1px solid #2a7fff; color:#6abfff;
+  cursor:pointer; border-radius:3px;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  letter-spacing:3px; text-transform:uppercase; transition:all .2s;
+}
+.fire-btn:hover{box-shadow:0 0 20px rgba(42,127,255,.3);color:#9ad4ff}
+.fire-btn:active{transform:scale(.98)}
+.clear-btn {
+  width:100%; padding:7px;
+  background:rgba(40,10,10,.3); border:1px solid #2a1010;
+  color:#664444; cursor:pointer; border-radius:3px;
+  font-size:10px; font-family:'Rajdhani',sans-serif; font-weight:600;
+  letter-spacing:1px; transition:all .2s;
+}
+.clear-btn:hover{border-color:#aa4444;color:#ffaaaa}
+.divider{height:1px;background:#0a1e30}
+#viewport { flex:1; position:relative; overflow:hidden; cursor:crosshair; }
+#viewport.dragging{cursor:grabbing}
+canvas{display:block;width:100%!important;height:100%!important}
+#hint {
+  position:absolute; bottom:10px; right:14px;
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  color:#0d2035; letter-spacing:1px; pointer-events:none;
+  line-height:1.7; text-align:right;
+}
+#info {
+  position:absolute; top:12px; left:12px;
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  color:#1a4060; letter-spacing:1px; pointer-events:none; line-height:1.8;
+}
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <div><div class="logo"><div class="logo-dot"></div>NINA PHYSICS LAB</div></div>
+
+  <div>
+    <div class="sec-label">재질 소환</div>
+    <div class="mat-grid">
+      <button class="mat-btn" onclick="addSlab('wood')">
+        <div class="mat-swatch" style="background:linear-gradient(135deg,#7a4a2a,#5a3018)"></div>나무판자
+      </button>
+      <button class="mat-btn" onclick="addSlab('steel')">
+        <div class="mat-swatch" style="background:linear-gradient(135deg,#8a9aaa,#505f6a)"></div>철판
+      </button>
+      <button class="mat-btn" onclick="addSlab('stone')">
+        <div class="mat-swatch" style="background:linear-gradient(135deg,#7a7a78,#4a4a48)"></div>돌판
+      </button>
+      <button class="mat-btn" onclick="addSlab('gold')">
+        <div class="mat-swatch" style="background:linear-gradient(135deg,#ffd700,#aa8800)"></div>금판
+      </button>
+      <button class="mat-btn" onclick="addSlab('air')" style="grid-column:span 2">
+        <div class="mat-swatch" style="background:rgba(135,206,235,.12);border:1px dashed rgba(135,206,235,.35);width:100%"></div>공기판 (투명)
+      </button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <div class="sec-label">배치된 판자</div>
+    <div class="slab-list" id="slabList">
+      <div class="empty-hint">// 판자를 소환하세요</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="sec-label">선택된 판자 투명도</div>
+    <div class="slider-row">
+      <input type="range" id="opacityRange" min="5" max="100" value="85" oninput="updateOpacity(this.value)">
+      <span class="slider-val" id="opacityVal">85%</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <div class="sec-label">파동 선택</div>
+    <div class="wave-list">
+      <button class="wave-btn active" id="wbtn-water" onclick="selectWave('water')" style="--wc:#3a9eff">
+        <div class="wave-pip"></div>물 파도<span class="wave-sub">WAVE</span>
+      </button>
+      <button class="wave-btn" id="wbtn-sound" onclick="selectWave('sound')" style="--wc:#44ff88">
+        <div class="wave-pip"></div>소리 파동<span class="wave-sub">340m/s</span>
+      </button>
+      <button class="wave-btn" id="wbtn-ir" onclick="selectWave('ir')" style="--wc:#ff5a1a">
+        <div class="wave-pip"></div>빛 파동 – 적외선<span class="wave-sub">IR</span>
+      </button>
+      <button class="wave-btn" id="wbtn-uv" onclick="selectWave('uv')" style="--wc:#cc44ff">
+        <div class="wave-pip"></div>빛 파동 – 자외선<span class="wave-sub">UV</span>
+      </button>
+      <button class="wave-btn" id="wbtn-wind" onclick="selectWave('wind')" style="--wc:#b0cce0">
+        <div class="wave-pip"></div>바람<span class="wave-sub">WIND</span>
+      </button>
+    </div>
+  </div>
+
+  <button class="fire-btn" onclick="fireWave()">&#9658; &nbsp;FIRE WAVE</button>
+  <button class="clear-btn" onclick="clearScene()">전체 초기화 CLEAR</button>
+</div>
+
+<div id="viewport">
+  <canvas id="c"></canvas>
+  <div id="info"><span id="infoText">// 재질 배치 후 파동을 발사하세요</span></div>
+  <div id="hint">우클릭 드래그 → 3D 회전<br>스크롤 → 줌</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  RENDERER & SCENE
+// ═══════════════════════════════════════════════════════════
+const vp      = document.getElementById('viewport');
+const canvas  = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x020508);
+scene.fog = new THREE.FogExp2(0x020508, 0.016);
+
+let VW=vp.clientWidth, VH=vp.clientHeight;
+const camera = new THREE.PerspectiveCamera(52,VW/VH,0.1,200);
+let camTheta=-0.55, camPhi=0.90, camR=22;
+const camTarget = new THREE.Vector3(0,0,0);
+
+function positionCamera() {
+  camera.position.set(
+    camTarget.x + camR*Math.sin(camPhi)*Math.sin(camTheta),
+    camTarget.y + camR*Math.cos(camPhi),
+    camTarget.z + camR*Math.sin(camPhi)*Math.cos(camTheta)
+  );
+  camera.lookAt(camTarget);
+}
+positionCamera();
+renderer.setSize(VW,VH);
+
+// lights
+scene.add(new THREE.AmbientLight(0x0a1828,5));
+const sun = new THREE.DirectionalLight(0x8ab4ff,3);
+sun.position.set(4,10,6); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-18; sun.shadow.camera.right=18;
+sun.shadow.camera.top=14; sun.shadow.camera.bottom=-14;
+scene.add(sun);
+const rimL = new THREE.PointLight(0x1a4a80,3,40);
+rimL.position.set(-10,4,0); scene.add(rimL);
+
+// floor grid
+const grid = new THREE.GridHelper(40,40,0x081828,0x050f18);
+grid.position.y=-2.6; scene.add(grid);
+
+// axis guide
+{
+  const pts=[new THREE.Vector3(-11,0,0), new THREE.Vector3(13,0,0)];
+  scene.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({color:0x0a1f30,transparent:true,opacity:0.5})
+  ));
+}
+
+// emitter
+const emitMat = new THREE.MeshStandardMaterial({
+  color:0x3a9eff, emissive:0x1a4aaa, emissiveIntensity:3, roughness:.1, metalness:.5
+});
+const emitter = new THREE.Mesh(new THREE.SphereGeometry(.28,20,20), emitMat);
+emitter.position.set(-10,0,0); scene.add(emitter);
+const eRingMat = new THREE.MeshStandardMaterial({color:0x3a9eff,emissive:0x2266cc,emissiveIntensity:4});
+const eRing = new THREE.Mesh(new THREE.TorusGeometry(.55,.04,8,32), eRingMat);
+eRing.rotation.y=Math.PI/2; eRing.position.copy(emitter.position); scene.add(eRing);
+
+// ═══════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════
+const MAT_CFG = {
+  wood:  {name:'나무판자', hex:'#7a4a2a', color:0x8B5E3C, emissive:0x1a0800, rough:.92, metal:.00,
+          trans:{water:.00, sound:.30, ir:.05, uv:.02, wind:.25}},
+  steel: {name:'철판',    hex:'#7a8f9f', color:0x7a8f9f, emissive:0x050a10, rough:.18, metal:.95,
+          trans:{water:.00, sound:.08, ir:.04, uv:.02, wind:.00}},
+  stone: {name:'돌판',    hex:'#7a7a78', color:0x787876, emissive:0x050505, rough:.96, metal:.00,
+          trans:{water:.00, sound:.18, ir:.00, uv:.00, wind:.05}},
+  gold:  {name:'금판',    hex:'#ffd700', color:0xFFD700, emissive:0x331a00, rough:.08, metal:1.0,
+          trans:{water:.00, sound:.05, ir:.92, uv:.00, wind:.00}},
+  air:   {name:'공기판',  hex:'#87ceeb', color:0x87ceeb, emissive:0x000a15, rough:.00, metal:.00,
+          trans:{water:1.0, sound:1.0,  ir:1.0, uv:1.0,  wind:1.0}}
+};
+
+const WAVE_CFG = {
+  water: {color:0x3a9eff, emissive:0x0a2a66, name:'물 파도'},
+  sound: {color:0x44ff88, emissive:0x006630, name:'소리 파동'},
+  ir:    {color:0xff5a1a, emissive:0x660a00, name:'적외선 빛'},
+  uv:    {color:0xcc44ff, emissive:0x440066, name:'자외선 빛'},
+  wind:  {color:0xb0cce0, emissive:0x1a3050, name:'바람'}
+};
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let slabs      = [];
+let slabId     = 0;
+let selectedId = null;
+let activeWave = 'water';
+let liveWaves  = [];
+let ripples    = [];
+let debris     = [];
+const MAX_SLABS=5, SLAB_GAP=3.2;
+
+// ═══════════════════════════════════════════════════════════
+//  SLABS
+// ═══════════════════════════════════════════════════════════
+function repositionSlabs() {
+  slabs.forEach((s,i)=>{
+    const x = (i-(slabs.length-1)/2)*SLAB_GAP;
+    s.baseX=x;
+    if (!s.vibrating) s.mesh.position.x=x;
+    if (s.wireMesh) s.wireMesh.position.x=x;
+  });
+}
+
+function addSlab(type) {
+  if (slabs.length>=MAX_SLABS) return;
+  const cfg=MAT_CFG[type];
+  const geo=new THREE.BoxGeometry(.32,5.2,6.5,1,4,4);
+  const mat=new THREE.MeshStandardMaterial({
+    color:cfg.color, emissive:cfg.emissive, emissiveIntensity:.4,
+    roughness:cfg.rough, metalness:cfg.metal,
+    transparent:true, opacity:type==='air'?.12:.88, side:THREE.DoubleSide
+  });
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.castShadow=true; mesh.receiveShadow=true; scene.add(mesh);
+
+  let wireMesh=null;
+  if (type==='air') {
+    wireMesh=new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(.32,5.2,6.5)),
+      new THREE.LineBasicMaterial({color:0x87ceeb,transparent:true,opacity:.4})
+    );
+    scene.add(wireMesh);
+  }
+  const id=slabId++;
+  slabs.push({type,mesh,wireMesh,cfg,id,opacity:type==='air'?.12:.88,
+              baseX:0,vibrating:false,vibAmp:0,vibPhase:0,vibDecay:0,vibFreq:18});
+  repositionSlabs(); selectedId=id; updateSlabList();
+}
+
+function removeSlab(id) {
+  const i=slabs.findIndex(s=>s.id===id); if(i<0) return;
+  scene.remove(slabs[i].mesh);
+  if(slabs[i].wireMesh) scene.remove(slabs[i].wireMesh);
+  slabs.splice(i,1);
+  if(selectedId===id) selectedId=slabs.length?slabs[slabs.length-1].id:null;
+  repositionSlabs(); updateSlabList();
+}
+
+function selectSlab(id) {
+  selectedId=id;
+  const s=slabs.find(s=>s.id===id);
+  if(s){
+    document.getElementById('opacityRange').value=Math.round(s.opacity*100);
+    document.getElementById('opacityVal').textContent=Math.round(s.opacity*100)+'%';
+  }
+  updateSlabList();
+}
+
+function updateOpacity(v) {
+  document.getElementById('opacityVal').textContent=v+'%';
+  const s=slabs.find(s=>s.id===selectedId); if(!s) return;
+  s.opacity=v/100; s.mesh.material.opacity=s.opacity;
+}
+
+function updateSlabList() {
+  const el=document.getElementById('slabList');
+  if(!slabs.length){el.innerHTML='<div class="empty-hint">// 판자를 소환하세요</div>';return;}
+  el.innerHTML=slabs.map(s=>`
+    <div class="slab-item ${s.id===selectedId?'selected':''}" onclick="selectSlab(${s.id})">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="slab-dot" style="background:${s.cfg.hex}"></div>${s.cfg.name}
+      </div>
+      <span class="slab-remove" onclick="event.stopPropagation();removeSlab(${s.id})">x</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WAVE SELECT & FIRE
+// ═══════════════════════════════════════════════════════════
+function selectWave(type) {
+  activeWave=type;
+  document.querySelectorAll('.wave-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('wbtn-'+type).classList.add('active');
+  emitMat.color.setHex(WAVE_CFG[type].color);
+  emitMat.emissive.setHex(WAVE_CFG[type].emissive);
+}
+
+function fireWave() {
+  const wc=WAVE_CFG[activeWave];
+  if      (activeWave==='water')  spawnWater(wc,-10,1.0);
+  else if (activeWave==='sound')  spawnSound(wc,-10,1,1.0);
+  else if (activeWave==='ir'||activeWave==='uv') spawnLight(activeWave,wc);
+  else if (activeWave==='wind')   spawnWind(wc,-10,1.0);
+  setInfo('> '+wc.name+' 발사!');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SPAWN WAVES
+// ═══════════════════════════════════════════════════════════
+function spawnWater(wc, startX, opMult) {
+  const g=new THREE.Group(); g.position.set(startX,0,0); scene.add(g);
+
+  // animated front plane
+  const plGeo=new THREE.PlaneGeometry(.6,5.2,1,24);
+  const plMat=new THREE.MeshStandardMaterial({
+    color:wc.color, emissive:wc.emissive, emissiveIntensity:2,
+    transparent:true, opacity:.55*opMult, side:THREE.DoubleSide
+  });
+  const plane=new THREE.Mesh(plGeo,plMat); plane.rotation.y=Math.PI/2; g.add(plane);
+
+  // foam particle grid
+  const N=130, posArr=new Float32Array(N*3), origPos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const y=(Math.random()-.5)*5.0, z=(Math.random()-.5)*6.2;
+    posArr[i*3]=origPos[i*3]=(Math.random()-.5)*.2;
+    posArr[i*3+1]=origPos[i*3+1]=y; posArr[i*3+2]=origPos[i*3+2]=z;
+  }
+  const pGeo=new THREE.BufferGeometry();
+  pGeo.setAttribute('position',new THREE.BufferAttribute(posArr,3));
+  const pMat=new THREE.PointsMaterial({color:wc.color,size:.09,transparent:true,opacity:.75*opMult,sizeAttenuation:true});
+  const pts=new THREE.Points(pGeo,pMat); g.add(pts);
+
+  liveWaves.push({kind:'water',group:g,plane,pts,pGeo,posArr,origPos,
+    x:startX,speed:4.5,t:0,passed:new Set(),alive:true,opMult,wc});
+}
+
+function spawnSound(wc, startX, dir, opMult) {
+  const g=new THREE.Group(); g.position.set(startX,0,0); scene.add(g);
+  const rings=[]; const N=6;
+  for(let i=0;i<N;i++){
+    const r=.35+i*.55;
+    const geo=new THREE.TorusGeometry(r,.035,8,40);
+    const mat=new THREE.MeshStandardMaterial({
+      color:wc.color, emissive:wc.emissive, emissiveIntensity:2.5,
+      transparent:true, opacity:(1-i/N)*.85*opMult
+    });
+    const ring=new THREE.Mesh(geo,mat);
+    ring.rotation.y=Math.PI/2; ring.position.x=-dir*i*.4; g.add(ring);
+    rings.push({mesh:ring,baseR:r});
+  }
+  liveWaves.push({kind:'sound',group:g,rings,wc,
+    x:startX,dir,speed:dir*6.5,t:0,passed:new Set(),alive:true,opMult});
+}
+
+function spawnLight(type,wc) {
+  const g=new THREE.Group(); scene.add(g);
+  const len=22;
+  const bMat=new THREE.MeshStandardMaterial({
+    color:wc.color, emissive:new THREE.Color(wc.color),
+    emissiveIntensity:6, transparent:true, opacity:.92
+  });
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(.048,.048,len,12),bMat);
+  beam.rotation.z=Math.PI/2; beam.position.x=-10+len/2; g.add(beam);
+
+  const hMat=new THREE.MeshStandardMaterial({
+    color:wc.color, emissive:new THREE.Color(wc.color),
+    emissiveIntensity:1, transparent:true, opacity:.10
+  });
+  const halo=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,len,12),hMat);
+  halo.rotation.z=Math.PI/2; halo.position.x=-10+len/2; g.add(halo);
+
+  // interact with every slab immediately
+  slabs.forEach(slab=>{
+    const tr=slab.cfg.trans[type];
+    handleLightSlab(type,wc,slab,tr);
+  });
+  liveWaves.push({kind:'light',group:g,bMat,hMat,fade:2.8,t:0,alive:true,speed:0,passed:new Set()});
+}
+
+function spawnWind(wc, startX, opMult) {
+  const g=new THREE.Group(); scene.add(g);
+  const N=300, pos=new Float32Array(N*3), vels=[];
+  for(let i=0;i<N;i++){
+    pos[i*3]  =startX+Math.random()*.8;
+    pos[i*3+1]=(Math.random()-.5)*5;
+    pos[i*3+2]=(Math.random()-.5)*6.2;
+    vels.push({x:4.5+Math.random()*2, y:(Math.random()-.5)*.5, z:(Math.random()-.5)*.5});
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.PointsMaterial({color:wc.color,size:.09,transparent:true,opacity:.65*opMult,sizeAttenuation:true});
+  const pts=new THREE.Points(geo,mat); g.add(pts);
+  liveWaves.push({kind:'wind',group:g,pts,geo,pos,vels,N,wc,
+    t:0,alive:true,speed:0,passed:new Set(),opMult});
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COLLISION HANDLERS
+// ═══════════════════════════════════════════════════════════
+
+// --- surface ripple: expanding torus on slab face
+function spawnRipple(pos, color, speed) {
+  for(let k=0;k<2;k++){
+    const geo=new THREE.TorusGeometry(.08,.04,8,36);
+    const mat=new THREE.MeshStandardMaterial({
+      color, emissive:new THREE.Color(color), emissiveIntensity:4,
+      transparent:true, opacity:k===0?1:.6
+    });
+    const m=new THREE.Mesh(geo,mat);
+    m.position.copy(pos); m.rotation.y=Math.PI/2; scene.add(m);
+    ripples.push({mesh:m,mat,life:1,scale:.08,speed:speed*(k===0?1:.7)});
+  }
+}
+
+// --- add a debris particle system
+function addDebris(posArr, vels, color, size, life, decay, gravity, mat_override) {
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(posArr.slice(),3));
+  const mat=mat_override||new THREE.PointsMaterial({color,size,transparent:true,opacity:1,sizeAttenuation:true});
+  const pts=new THREE.Points(geo,mat); scene.add(pts);
+  debris.push({pts,geo,posArr:posArr.slice(),vels,life,decay,gravity,mat});
+}
+
+// --- water splash against wall (particles fan in YZ)
+function waterSplash(pos, trans, color) {
+  const N=80, posArr=new Float32Array(N*3), vels=[];
+  for(let i=0;i<N;i++){
+    posArr[i*3]  =pos.x;
+    posArr[i*3+1]=pos.y+(Math.random()-.5)*4.5;
+    posArr[i*3+2]=pos.z+(Math.random()-.5)*6.0;
+    const angle=(Math.random()-.5)*Math.PI*1.5;
+    const spd=.8+Math.random()*3.8;
+    const goBack=Math.random()>(trans+.1)?1:-0.3;
+    vels.push({
+      x:-(0.3+Math.random()*1.8)*goBack,
+      y:Math.sin(angle)*spd+1.0,
+      z:Math.cos(angle)*spd
+    });
+  }
+  addDebris(posArr,vels,color,.1,1,.55,5.0);
+
+  // White foam line across slab face
+  const NF=45, fPos=new Float32Array(NF*3), fVels=[];
+  for(let i=0;i<NF;i++){
+    fPos[i*3]  =pos.x+(Math.random()-.5)*.2;
+    fPos[i*3+1]=pos.y+(Math.random()-.5)*.5;
+    fPos[i*3+2]=(i/NF-.5)*6.3;
+    fVels.push({x:-(Math.random()*.3), y:.3+Math.random()*.8, z:(Math.random()-.5)*.2});
+  }
+  addDebris(fPos,fVels,0xffffff,.07,.8,.7,2.5);
+
+  // Drips sliding down
+  const ND=22, dPos=new Float32Array(ND*3), dVels=[];
+  for(let i=0;i<ND;i++){
+    dPos[i*3]  =pos.x+(Math.random()-.5)*.15;
+    dPos[i*3+1]=pos.y+(Math.random()+.2)*2.0;
+    dPos[i*3+2]=pos.z+(Math.random()-.5)*5.8;
+    dVels.push({x:(Math.random()-.5)*.08, y:-.15-Math.random()*.25, z:(Math.random()-.5)*.1});
+  }
+  addDebris(dPos,dVels,color,.07,1.8,.18,4.0);
+}
+
+// --- sound bounce: rings going backward
+function soundReflect(pos, wc, trans) {
+  if(trans>.85) return;
+  const str=1-trans;
+  const g=new THREE.Group(); g.position.set(pos.x,0,0); scene.add(g);
+  const N=Math.max(2,Math.round(str*5));
+  const rings=[];
+  for(let i=0;i<N;i++){
+    const r=.35+i*.5;
+    const mat=new THREE.MeshStandardMaterial({
+      color:wc.color, emissive:wc.emissive, emissiveIntensity:2,
+      transparent:true, opacity:(N-i)/N*str*.7
+    });
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.03,8,36),mat);
+    ring.rotation.y=Math.PI/2; ring.position.x=i*.3; g.add(ring); rings.push({mesh:ring});
+  }
+  liveWaves.push({kind:'sound',group:g,rings,wc,
+    x:pos.x,dir:-1,speed:-5.5,t:0,passed:new Set(),alive:true,opMult:str});
+}
+
+// --- sound resonance mini-rings on slab surface
+function soundResonance(pos, color, strength) {
+  for(let k=0;k<4;k++){
+    setTimeout(()=>{
+      const m=new THREE.Mesh(
+        new THREE.TorusGeometry(.12,.025,8,32),
+        new THREE.MeshStandardMaterial({
+          color, emissive:new THREE.Color(color), emissiveIntensity:3,
+          transparent:true, opacity:.9*strength
+        })
+      );
+      m.position.set(pos.x, pos.y+(Math.random()-.5)*3.5, pos.z+(Math.random()-.5)*5);
+      m.rotation.y=Math.PI/2; scene.add(m);
+      ripples.push({mesh:m,mat:m.material,life:1,scale:.12,speed:1.2});
+    }, k*70);
+  }
+}
+
+// --- reflected light beam (mirror bounce)
+function lightMirrorReflect(pos, color, strength) {
+  const g=new THREE.Group(); scene.add(g);
+  const len=14, angle=Math.PI/5.5;
+  const bMat=new THREE.MeshStandardMaterial({
+    color, emissive:new THREE.Color(color),
+    emissiveIntensity:5*strength, transparent:true, opacity:.88*strength
+  });
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,len,10),bMat);
+  beam.rotation.z=Math.PI/2+angle;
+  beam.position.set(pos.x-len/2*Math.cos(angle), pos.y+len/2*Math.sin(angle), pos.z);
+  g.add(beam);
+  const hMat=new THREE.MeshStandardMaterial({
+    color, emissive:new THREE.Color(color),
+    emissiveIntensity:.8, transparent:true, opacity:.1*strength
+  });
+  const halo=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,len,10),hMat);
+  halo.rotation.z=Math.PI/2+angle; halo.position.copy(beam.position); g.add(halo);
+  liveWaves.push({kind:'light',group:g,bMat,hMat,fade:1.8,t:0,alive:true,speed:0,passed:new Set()});
+}
+
+// --- absorption glow (light into wood/stone)
+function lightAbsorb(pos, matColor, waveColor) {
+  const N=30, posArr=new Float32Array(N*3), vels=[];
+  for(let i=0;i<N;i++){
+    posArr[i*3]  =pos.x+(Math.random()-.5)*.2;
+    posArr[i*3+1]=pos.y+(Math.random()-.5)*4.5;
+    posArr[i*3+2]=pos.z+(Math.random()-.5)*5.5;
+    vels.push({x:(Math.random()-.5)*.2, y:.05+Math.random()*.4, z:(Math.random()-.5)*.2});
+  }
+  addDebris(posArr,vels,matColor,.12,1.2,.45,.8);
+}
+
+// --- wind edge turbulence
+function windTurbulence(pos, wc, trans) {
+  if(trans>.8) return;
+  const str=1-trans; const N=Math.round(str*50);
+  const posArr=new Float32Array(N*3), vels=[];
+  for(let i=0;i<N;i++){
+    const edge=Math.random()<.5?2.5:-2.5;
+    posArr[i*3]  =pos.x+(Math.random()-.5)*.4;
+    posArr[i*3+1]=pos.y+edge+(Math.random()-.5)*.5;
+    posArr[i*3+2]=pos.z+(Math.random()-.5)*6;
+    const curl=edge>0?1:-1;
+    vels.push({x:.5+Math.random()*1.5, y:-curl*(Math.random()*2), z:(Math.random()-.5)*1.5});
+  }
+  addDebris(posArr,vels,wc.color,.09,1.2,.45,.4);
+}
+
+// --- generic burst
+function flashBurst(pos, color, N, spread) {
+  const posArr=new Float32Array(N*3), vels=[];
+  for(let i=0;i<N;i++){
+    posArr[i*3]  =pos.x;
+    posArr[i*3+1]=pos.y+(Math.random()-.5)*(spread?4.5:.5);
+    posArr[i*3+2]=pos.z+(Math.random()-.5)*(spread?5.5:.5);
+    vels.push({x:(Math.random()-.5)*3.5, y:(Math.random()-.5)*3.5, z:(Math.random()-.5)*3.5});
+  }
+  addDebris(posArr,vels,color,.13,1,1.1,1.5);
+}
+
+// --- slab flash
+function flashSlab(slab, color) {
+  if(!slab.mesh.material) return;
+  const orig=slab.mesh.material.emissiveIntensity;
+  const origC=slab.mesh.material.emissive.clone();
+  slab.mesh.material.emissive.setHex(color);
+  slab.mesh.material.emissiveIntensity=6;
+  setTimeout(()=>{
+    if(slab.mesh.material){
+      slab.mesh.material.emissive.copy(origC);
+      slab.mesh.material.emissiveIntensity=orig;
+    }
+  },220);
+}
+
+// --- slab vibration
+function vibrateSlab(slab,amp) {
+  slab.vibrating=true;
+  slab.vibAmp=amp*(1-slab.cfg.metal*.65);
+  slab.vibFreq=18+slab.cfg.rough*6;
+  slab.vibPhase=0; slab.vibDecay=5;
+}
+
+// ── LIGHT SLAB INTERACTION ────────────────────────────────
+function handleLightSlab(type,wc,slab,tr) {
+  const pos=slab.mesh.position.clone();
+  spawnRipple(pos,wc.color,1.3);
+
+  if(slab.type==='gold'){
+    lightMirrorReflect(pos,wc.color,1.0);
+    flashBurst(pos,wc.color,35,true);
+    flashSlab(slab,wc.color);
+    setInfo('> 금판: 적외선 거울 반사!');
+  } else if(slab.type==='steel'){
+    lightMirrorReflect(pos,wc.color,0.55);
+    flashBurst(pos,wc.color,20,true);
+    flashSlab(slab,wc.color);
+    setInfo('> 철판: 부분 반사');
+  } else if(slab.type==='air'){
+    // diffraction fringe lines
+    const cols=[0xff4444,0xff8800,0xffff00,0x44ff44,0x4488ff,0xcc44ff];
+    cols.forEach((c,i)=>{
+      const z=(i-2.5)*.55;
+      const pts=[new THREE.Vector3(pos.x,pos.y,z), new THREE.Vector3(pos.x+3.5,pos.y,z)];
+      const mat=new THREE.LineBasicMaterial({color:c,transparent:true,opacity:.65});
+      const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mat);
+      scene.add(line);
+      debris.push({pts:line,geo:null,posArr:null,vels:[],life:1.8,decay:.28,gravity:0,mat,isLine:true});
+    });
+  } else {
+    // wood/stone: absorb
+    lightAbsorb(pos,slab.cfg.color,wc.color);
+    flashSlab(slab,wc.color);
+    if(tr<.1) vibrateSlab(slab,.1);
+    setInfo('> '+slab.cfg.name+': 빛 흡수');
+  }
+}
+
+// ── WATER SLAB INTERACTION ────────────────────────────────
+function handleWaterSlab(wave, slab) {
+  const pos=slab.mesh.position.clone();
+  const tr=slab.cfg.trans.water;
+  const wc=WAVE_CFG.water;
+
+  spawnRipple(pos,wc.color,1.6);
+  waterSplash(pos,tr,wc.color);
+  flashSlab(slab,wc.color);
+
+  if(tr<.05){
+    vibrateSlab(slab,.2);
+    wave.speed*=.04;
+    if(wave.plane) wave.plane.material.opacity=0;
+    if(wave.pts)   wave.pts.material.opacity=0;
+    setInfo('> '+slab.cfg.name+': 물 완전 차단');
+  } else {
+    wave.speed*=(.1+tr*.85);
+    if(wave.plane) wave.plane.material.opacity*=tr*.8;
+    if(wave.pts)   wave.pts.material.opacity  *=tr*.8;
+    setTimeout(()=>spawnWater(wc,pos.x+.25,tr*.8),60);
+    setInfo('> '+slab.cfg.name+': 투과율 '+Math.round(tr*100)+'%');
+  }
+}
+
+// ── SOUND SLAB INTERACTION ────────────────────────────────
+function handleSoundSlab(wave, slab) {
+  const pos=slab.mesh.position.clone();
+  const tr=slab.cfg.trans.sound;
+  const wc=WAVE_CFG.sound;
+
+  spawnRipple(pos,wc.color,1.2);
+  soundReflect(pos,wc,tr);
+  soundResonance(pos,wc.color,Math.min(1,1-tr));
+  flashSlab(slab,wc.color);
+
+  if(tr<.1){
+    vibrateSlab(slab,.25);
+    wave.speed*=.05;
+    wave.rings.forEach(r=>{r.mesh.material.opacity=0;});
+    setInfo('> '+slab.cfg.name+': 소리 차단 + 반사');
+  } else {
+    wave.speed*=(.08+tr*.85);
+    wave.rings.forEach(r=>{r.mesh.material.opacity*=tr*.75;});
+    setTimeout(()=>spawnSound(wc,pos.x+.25,1,tr*.75),80);
+    setInfo('> '+slab.cfg.name+': 부분 투과 '+Math.round(tr*100)+'%');
+  }
+}
+
+// ── WIND SLAB INTERACTION ─────────────────────────────────
+function handleWindSlab(wave, slab) {
+  const pos=slab.mesh.position.clone();
+  const tr=slab.cfg.trans.wind;
+  const wc=WAVE_CFG.wind;
+
+  spawnRipple(pos,wc.color,.9);
+  windTurbulence(pos,wc,tr);
+  flashSlab(slab,wc.color);
+  setInfo('> '+slab.cfg.name+': 바람 충돌 - 난기류 발생');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLEAR
+// ═══════════════════════════════════════════════════════════
+function clearScene() {
+  slabs.forEach(s=>{scene.remove(s.mesh);if(s.wireMesh)scene.remove(s.wireMesh);});
+  slabs=[];
+  liveWaves.forEach(w=>scene.remove(w.group)); liveWaves=[];
+  ripples.forEach(r=>scene.remove(r.mesh)); ripples=[];
+  debris.forEach(d=>scene.remove(d.pts)); debris=[];
+  selectedId=null; updateSlabList(); setInfo('// 씬 초기화 완료');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MOUSE
+// ═══════════════════════════════════════════════════════════
+let isDragging=false, lastMX=0, lastMY=0;
+vp.addEventListener('mousedown',e=>{
+  if(e.button===2){isDragging=true;lastMX=e.clientX;lastMY=e.clientY;vp.classList.add('dragging');}
+});
+window.addEventListener('mousemove',e=>{
+  if(!isDragging) return;
+  camTheta-=(e.clientX-lastMX)*.008;
+  camPhi=Math.max(.08,Math.min(Math.PI*.86,camPhi+(e.clientY-lastMY)*.008));
+  lastMX=e.clientX; lastMY=e.clientY; positionCamera();
+});
+window.addEventListener('mouseup',e=>{
+  if(e.button===2){isDragging=false;vp.classList.remove('dragging');}
+});
+vp.addEventListener('contextmenu',e=>e.preventDefault());
+vp.addEventListener('wheel',e=>{
+  e.preventDefault();
+  camR=Math.max(5,Math.min(45,camR+e.deltaY*.025));
+  positionCamera();
+},{passive:false});
+
+function setInfo(msg){document.getElementById('infoText').textContent=msg;}
+
+// ═══════════════════════════════════════════════════════════
+//  ANIMATION LOOP
+// ═══════════════════════════════════════════════════════════
+const clock=new THREE.Clock(); let T=0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),.05); T+=dt;
+
+  // emitter
+  emitter.scale.setScalar(1+Math.sin(T*5)*.08);
+  eRing.rotation.x=T*1.8;
+
+  // slab vibration
+  slabs.forEach(s=>{
+    if(!s.vibrating) return;
+    s.vibPhase+=dt*s.vibFreq;
+    s.vibAmp*=(1-dt*s.vibDecay);
+    s.mesh.position.x=s.baseX+Math.sin(s.vibPhase)*s.vibAmp;
+    if(s.vibAmp<.002){s.vibrating=false;s.mesh.position.x=s.baseX;}
+  });
+
+  // live waves
+  for(let i=liveWaves.length-1;i>=0;i--){
+    const w=liveWaves[i]; if(!w.alive) continue; w.t+=dt;
+
+    if(w.kind==='water'){
+      w.x+=w.speed*dt; w.group.position.x=w.x;
+      // waviness
+      if(w.pGeo&&w.pGeo.attributes.position){
+        const pa=w.pGeo.attributes.position.array;
+        for(let j=0;j<pa.length/3;j++){
+          const z=w.origPos[j*3+2];
+          pa[j*3]=Math.sin(z*2+T*5+j*.3)*.22;
+        }
+        w.pGeo.attributes.position.needsUpdate=true;
+      }
+      if(w.plane&&w.plane.geometry){
+        const pp=w.plane.geometry.attributes.position;
+        for(let j=0;j<pp.count;j++) pp.setX(j,Math.sin(pp.getY(j)*.8+T*4)*.18);
+        pp.needsUpdate=true;
+      }
+      // fade
+      const age=w.t;
+      if(w.pts)  w.pts.material.opacity =Math.max(0,.75*w.opMult-age*.08);
+      if(w.plane) w.plane.material.opacity=Math.max(0,.55*w.opMult-age*.07);
+      // collision
+      slabs.forEach(slab=>{
+        if(w.passed.has(slab.id)) return;
+        if(w.x>=slab.mesh.position.x-.22){
+          w.passed.add(slab.id); handleWaterSlab(w,slab);
+        }
+      });
+      if(w.x>13){scene.remove(w.group);liveWaves.splice(i,1);}
+    }
+
+    else if(w.kind==='sound'){
+      w.x+=w.speed*dt; w.group.position.x=w.x;
+      w.rings.forEach((r,ri)=>{
+        const ex=1+Math.sin(T*3-ri*.5)*.06; r.mesh.scale.setScalar(ex);
+        r.mesh.material.opacity=Math.max(0,r.mesh.material.opacity-dt*.035);
+      });
+      if(w.dir===1){
+        slabs.forEach(slab=>{
+          if(w.passed.has(slab.id)) return;
+          if(w.x>=slab.mesh.position.x-.25){
+            w.passed.add(slab.id); handleSoundSlab(w,slab);
+          }
+        });
+      }
+      const gone=w.dir===1?w.x>13:w.x<-14;
+      if(gone||w.t>4){scene.remove(w.group);liveWaves.splice(i,1);}
+    }
+
+    else if(w.kind==='light'){
+      w.fade-=dt;
+      if(w.fade<=0){
+        w.bMat.opacity=Math.max(0,w.bMat.opacity-dt*.85);
+        if(w.hMat) w.hMat.opacity=Math.max(0,w.hMat.opacity-dt*.4);
+        if(w.bMat.opacity<=0){scene.remove(w.group);liveWaves.splice(i,1);}
+      }
+    }
+
+    else if(w.kind==='wind'){
+      const pa=w.geo.attributes.position.array;
+      for(let j=0;j<w.N;j++){
+        pa[j*3]  +=w.vels[j].x*dt;
+        pa[j*3+1]+=w.vels[j].y*dt;
+        pa[j*3+2]+=w.vels[j].z*dt;
+        slabs.forEach(slab=>{
+          const sx=slab.mesh.position.x, px=pa[j*3];
+          const key='e'+slab.id;
+          if(!w.passed.has(key)&&px>sx-.22&&px<sx+.22){
+            const tr=slab.cfg.trans.wind;
+            if(Math.random()>tr){ pa[j*3]=sx-.3; w.vels[j].x*=-.15; }
+            if(!w.passed.has(key)){w.passed.add(key); handleWindSlab(w,slab);}
+          }
+        });
+        if(pa[j*3]>13){
+          pa[j*3]=-10+Math.random()*.6;
+          pa[j*3+1]=(Math.random()-.5)*5; pa[j*3+2]=(Math.random()-.5)*6.2;
+          w.vels[j].x=4.5+Math.random()*2; w.vels[j].y=(Math.random()-.5)*.5; w.vels[j].z=(Math.random()-.5)*.5;
+        }
+      }
+      w.geo.attributes.position.needsUpdate=true;
+      w.pts.material.opacity=Math.max(0,.65-w.t*.1);
+      if(w.t>6.5){scene.remove(w.group);liveWaves.splice(i,1);}
+    }
+  }
+
+  // ripples
+  for(let i=ripples.length-1;i>=0;i--){
+    const r=ripples[i]; r.life-=dt*1.4; r.scale+=dt*r.speed;
+    r.mesh.scale.setScalar(r.scale); r.mat.opacity=Math.max(0,r.life);
+    if(r.life<=0){scene.remove(r.mesh);ripples.splice(i,1);}
+  }
+
+  // debris
+  for(let i=debris.length-1;i>=0;i--){
+    const d=debris[i]; d.life-=dt*d.decay; d.mat.opacity=Math.max(0,d.life);
+    if(!d.isLine&&d.posArr&&d.vels.length){
+      const pa=d.geo.attributes.position.array;
+      for(let j=0;j<d.vels.length;j++){
+        pa[j*3]  +=d.vels[j].x*dt;
+        pa[j*3+1]+=d.vels[j].y*dt;
+        pa[j*3+2]+=d.vels[j].z*dt;
+        d.vels[j].y-=d.gravity*dt;
+      }
+      d.geo.attributes.position.needsUpdate=true;
+    }
+    if(d.life<=0){scene.remove(d.pts);debris.splice(i,1);}
+  }
+
+  rimL.intensity=2.5+Math.sin(T*1.3)*.4;
+  renderer.render(scene,camera);
+}
+
+window.addEventListener('resize',()=>{
+  VW=vp.clientWidth; VH=vp.clientHeight;
+  renderer.setSize(VW,VH); camera.aspect=VW/VH; camera.updateProjectionMatrix(); positionCamera();
+});
+
+animate();
+</script>
+</body>
+</html>
